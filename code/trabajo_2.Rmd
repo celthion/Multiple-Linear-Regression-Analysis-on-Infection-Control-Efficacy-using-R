@@ -1,0 +1,378 @@
+---
+title: "Trabajo 2"
+author: "David Cardona Duque"
+date: "9/3/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+<div style="text-align: justify">
+
+```{r}
+datos <- read.csv("datos.csv",
+                     encoding = "UTF-8")
+source("Functions.R")
+library(leaps)
+library(perturb)
+library(car)
+```
+
+
+## Problema 
+##### En un estudio a gran escala realizado en EE.UU sobre la eficacia en el control de infecciones hospitalarias se recogió información en 113 hospitales, los datos se encuentran en publicados junto con el este archivo (datos2.txt). La base de datos contiene las siguientes columnas (variables):
+##### y: Riesgo de infección -  Probabilidad promedio estimada de adquirir infección en el hospital (en porcentaje).
+##### x1: Duración de la estadía -  Duración promedio de la estadía de todos los pacientes en el hospital (en días).
+##### x2: Rutina de cultivos - Razón del número de cultivos realizados en pacientes sin síntomas de infección hospitalaria, por cada 100.
+##### x3: Número de camas - Número promedio de camas en el hospital durante el periodo del estudio.
+##### x4: Censo promedio diario - Número promedio de pacientes en el hospital por día durante el periodo del estudio.
+##### x5: Número de enfermeras -  Número promedio de enfermeras, equivalentes a tiempo completo, durante el periodo del estudio.
+
+
+
+
+
+
+
+
+## Puntos
+
+### 1. Estime un modelo de regresión lineal múltiple que explique el Riesgo de Infección en términos de todas las variables predictoras. Analice la significancia de la regresión y de los parámetros individuales. Interprete los parámetros estimados. Calcule e interprete el coeficiente de determinación múltiple R2. Comente los resultados.
+
+```{r}
+mod=lm(y~x1+x2+x3+x4+x5,data=datos)
+```
+
+##### Tabla resumen regresión
+```{r}
+summary(mod)
+```
+
+##### Tabla ANOVA regresión
+
+```{r}
+myAnova(mod)
+```
+
+#### **Significancia de la regresión.**
+
+##### $H_0$: $\beta_1$ =$\beta_2$ = $\beta_3$= $\beta_4$ = $\beta_5$=0 vs $H_1$: $\beta_1\not=0$ o $\beta_2\not=$ o $\beta_3\not=$ o $\beta_4\not=0$ o $\beta_5\not=0$
+
+##### $F_0$ = $\frac{MSR}{MSE}$
+
+##### $F_0$ = $\frac{10.20905}{1.07124}$ = 9.5301
+
+##### $f_{0.05,5,59}$ = 2.37098
+
+##### Note que $F_0$ \> $f_{0.05,5,59}$ por lo tanto con un 95% de significancia al menos un $\beta_j\not=0$. Lo que significa que por lo menos uno de los parámetros si es significativo en presencia de los otros a la hora de explicar el riesgo de infección. 
+
+
+#### Significancia de los parámetros individuales e interpretación.
+
+##### **Significancia $\beta_1$**
+
+##### $H_0$: $\beta_1$ = 0 Vs $H_1$: $\beta_1\not=0$
+##### $t_0$ = $\frac{\hat{\beta_1}}{Se(\hat{\beta_1})}$ 
+##### $t_0$ = $\frac{0.2106683}{0.0785765}$ = 2.68106
+##### $t_{0.025,59}$ =  2.000995
+##### Note que $t_0$>$t_{0.025,59}$ por lo tanto con una significancia de 95% (he inclusive con un 99% si observamos la tabla resumen) podemos afirmar que $\beta_1$ es significativo en presencia de los otros parámetros. Su interpretación es que por cada día de más en la variable "Duración de la estadía" la probabilidad promedio estimada de adquirir una infección en el hospital aumenta en promedio 0.2106683%, siempre que las demás predictoras permanezcan constantes.
+
+
+#### **En adelante todas las hipótesis de significancia se resolverán con la tabla resumen y la información brindada por de la misma** 
+
+##### **Significancia $\beta_0$**
+##### Con una significancia de 95% podemos afirmar que $\beta_0$ no es significativo en presencia de los otros parámetros. Este coeficiente no es interpretable debido a lo anterior.
+
+##### **Significancia $\beta_2$**
+##### Con una significancia de 95% podemos afirmar que $\beta_2$ no es significativo en presencia de los otros parámetros. Este coeficiente no es interpretable debido a lo anterior.
+
+##### **Significancia $\beta_3$**
+##### Con una significancia de 99.9% podemos afirmar que $\beta_3$ es significativo en presencia de los otros parámetros. La interpretación de este coeficiente es que por un aumento de una cama en la variable "Número de camas" la probabilidad promedio estimada de adquirir una infección en el hospital crece en promedio 0.0470925%, siempre que las demás predictoras permanezcan constantes.
+
+##### **Significancia $\beta_4$**
+##### Con una significancia de 95% podemos afirmar que $\beta_4$ no es significativo en presencia de los otros parametros. Este coeficiente no es interpretable debido a lo anterior.
+
+##### **Significancia $\beta_5$**
+##### Con una significancia de 95% podemos afirmar que $\beta_5$ no es significativo en presencia de los otros parámetros. Este coeficiente no es interpretable debido a lo anterior.
+
+
+
+
+#### **Coeficiente de determinación múltiple $R^2$**
+
+##### El coeficiente $R^2$=0.4468 significa que el modelo explica el 44.68% de la variabilidad del "Riesgo de infección", por lo tanto las variables predictoras elegidas no son las mejores en cuanto a la explicación de la variable de respuesta. Si hacemos una comparación con el coeficiente $R^2$ **ajustado** el cual es igual a 0.3999 y nos ayuda a vislumbrar como tenemos una penalización por utilizar variables poco significativas de sobra como lo vimos en el punto pasado.
+
+#### **Comentario acerca de los resultados**
+
+##### Desde los análisis anteriores podemos encontrar varias cosas, entre ellas que aunque el modelo es significativo en su generalidad no es un buen modelo en cuanto a predicción porque incluye 3 variables no significativas dentro del mismo además que el coeficiente múltiple $R^2$ el cual no penaliza por adherir tales variables es aún muy bajo, por lo tanto esto puede darce debido a que las variables significativas del modelo no tienen una relación lineal muy adecuada con la variable de respuesta "Riesgo de infección" lo cual se puede evidenciar en el poco aumento marginal que aportan estas variables cuando el resto esta constante, esto debido posiblemente a que "Riesgo de infección" depende de otros factores.
+
+
+
+### 2. Use la tabla de todas las regresiones posibles, para probar la significancia simultánea del subconjunto de tres variables con los valores p mayores del punto anterior. Según el resultado de la prueba es posible descartar del modelo las variables del subconjunto?.
+
+
+
+
+
+##### Las variables con valores p mayores del punto anterior fueron: x2,x4,x5
+
+```{r}
+mod1=lm(y~x2+x4+x5,data=datos)
+myAnova(mod1)
+```
+
+
+##### Significancia simultánea del subconjunto como modelo
+
+##### $H_0$: $\beta_1$ =$\beta_2$ = $\beta_3$ = 0 vs $H_1$: $\beta_1\not=0$ o $\beta_2\not=$ o $\beta_3\not=0$ 
+
+##### $F_0$ = $\frac{MSR}{MSE}$
+
+##### $F_0$ = $\frac{8.97590}{1.43149}$ = 6.27031974
+
+##### $f_{0.05,3,61}$ = 2.75548
+
+
+##### **Análisis comparativo mediante todas las regresiones posibles**
+```{r}
+myAllRegTable(mod)
+```
+
+##### **Criterio $R^2$**
+```{r}
+myR2_criterion(mod)
+```
+
+##### **Criterio $R^2$ ajustado**
+```{r}
+myAdj_R2_criterion(mod)
+```
+
+
+##### **Criterio $C_p$**
+```{r}
+myCp_criterion(mod)
+```
+
+##### Podemos notar que sin la existencia de otras variables al menos una de las 3 es significativa con una seguridad del 95%, ya que $F_0$>$f_{0.05,3,61}$, ahora bien si hacemos un análisis comparativo desde la tabla de todas las regresiones podemos observar que bajo el criterio de $R^2$, $R^2$ **ajustado**  y $C_p$ en todos existen por lo menos una variable del subconjunto que debería entrar en el modelo, por ejemplo observamos en la tabla de todas las regresiones entendemos que el mejor modelo basado en el criterio $C_p$ sería el que involucra a las variables x1 x3 x4, lo mismo al analizar bajo el criterio $R^2$. Por lo tanto no es posible descartar todas las variables del subconjunto, aunque si es posible descartar x2 y x5 con base a los criterios anteriores pues su aporte al $R^2$ y al $R^2$ **ajustado** es mínimo además que su impacto en el $|C_p-p|$ es aumentarlo.
+
+
+
+
+
+
+### 3. Plantee una pregunta donde su solución implique el uso exclusivo de una prueba de hipótesis lineal general de la forma H0 :Lβ =0(solo se puede usar este procedimiento y no SSextra), donde especifique claramente la matriz L, el modelo reducido y la expresión para el estadístico de prueba.
+
+### Son los coeficientes $\beta_1$ = $\beta_4$, $\beta_3$=$\beta_2$, $\beta_5$=0 ?
+
+#### $H_0$: $\beta_1$ = $\beta_4$, $\beta_3$=$\beta_2$, $\beta_5$=0 vs $H_1$: $\beta_1\not=\beta_4$ o $\beta_3\not=\beta_2$ o $\beta_5\not=0$
+
+```{r}
+b0=c(0,0,0)
+b1=c(1,0,0)
+b2=c(0,-1,0)
+b3=c(0,1,0)
+b4=c(-1,0,0)
+b5=c(0,0,1)
+matriz_L <-cbind(b0,b1,b2,b3,b4,b5)
+```
+
+#### Matriz **L**
+
+```{r}
+matriz_L
+
+```
+
+#### Modelo reducido
+
+##### $Y_i$ = $\beta_0$ + $\beta_1$$X_{i1}$ +$\beta_3$$X_{i2}$ +$\beta_3$$X_{i3}$+$\beta_1$$X_{i4}$+$\varepsilon_i$
+
+##### $Y_i$ = $\beta_0$ + $\beta_1$($X_{i1}$+$X_{i4}$) +$\beta_3$($X_{i3}$+$X_{i2}$)+$\varepsilon_i$
+
+##### $Y_i$ = $\beta_0$ + $\beta_1$($Z_{i1,4}$) +$\beta_3$($Z_{i2,3}$)+$\varepsilon_i$
+
+```{r}
+attach(datos)
+Z14= x1 + x4
+Z23= x2+x3
+modR=lm(y~Z14+Z23)
+```
+
+##### Tabla ANOVA modelo reducido
+
+```{r}
+anova(modR)
+
+```
+
+##### Tabla ANOVA modelo completo
+
+```{r}
+anova(mod)
+```
+
+#### Expresión para el estadístico de prueba.
+
+#### $F_0$ = $\frac{\frac{SSE(M.R)-SSE(M.C)}{m}}{MSE(M.C)}$
+
+#### $F_0$ = $\frac{\frac{74.806-63.203}{3}}{1.0712}$ = 3.61059
+
+#### $f_{0.05,3,59}$ = 2.76077
+
+#### Note que $F_0$ \> $f_{0.05,3,59}$, entonces se rechaza $H_0$ con un nivel de significancia del 95%, lo cual nos lleva a que por lo menos una hipótesis alternativa es cierta.
+
+
+
+
+
+### 4. Realice una validación de los supuestos en los errores y examine si hay valores atípicos, de balanceo e influenciales. Qué puede decir acerca de la validez de este modelo?. Argumente.
+
+```{r}
+par(mfrow=c(2,2))
+plot(mod)
+##Validacion media 0
+ei=mod$residuals
+round(mean(ei),0)
+```
+
+#### **Validación varianza constante.**
+##### En la grafica "Residuals vs Fitted" se puede observar como la varianza tiene una tendencia no constante ni lineal esto debido a que los datos tienen una variación distinta respecto a su media por cada observación.
+
+
+#### **Validación normalidad** 
+```{r}
+shapiro.test(ei)
+```
+##### En la grafica "Normal Q-Q" se observa como los residuales tienen una tendencia normal, pero se tiene una desviación  en las partes extremas de la gráfica. Luego gracias al test de Shapiro Wilk se concluye que no hay evidencia para decir que no existe normalidad la distribución de los residuales, puesto que el valor p de la prueba es considerablemente grande por lo tanto no se rechaza la hipótesis inicial de que se distribuían normal
+
+
+#### **Independencia de los errores**
+##### Dado que estos registros no corresponden a datos en el tiempo no se tiene un orden temporal para realizar la validación de este supuesto. Se valida por definición del tipo de datos de corte transversal.
+
+
+#### **Observaciones atípicas**
+
+```{r}
+library(dplyr)
+library(ggplot2)
+datos$studentized_residual <- rstudent(mod)
+ggplot(data = datos, aes(x = predict(mod), y = abs(studentized_residual))) +
+geom_hline(yintercept = 3, color = "grey", linetype = "dashed") +
+# se identifican en rojo observaciones con residuos estandarizados absolutos > 3
+geom_point(aes(color = ifelse(abs(studentized_residual) > 3, 'red', 'black'))) +
+scale_color_identity() +
+labs(title = "Distribución de los residuos studentized",
+     x = "predicción modelo") + 
+theme_bw() + theme(plot.title = element_text(hjust = 0.5))
+
+which(abs(datos$studentized_residual) > 3)
+
+```
+##### Si $|r_i|>3$ entonces i es un punto atípico
+
+##### No se observa ninguna observación atípica en el modelo.
+
+#### **Puntos influyentes y de balanceo**
+```{r}
+t1<-predict(mod,se.fit=T)
+t2<-round(residuals(mod),4)
+t3<-round(cooks.distance(mod),4)
+t4<-round(hatvalues(mod),4)
+t5<-round(dffits(mod),4)
+restud<-round(rstudent(mod),4)
+est_salida <- data.frame(datos$y,yhat=round(t1$fit,4),
+se.yhat=round(t1$se.fit,6),residuals=t2
+,res.estud=restud,Cooks.D=t3,hii.value=t4,Dffits=t5)
+(est_salida)
+```
+
+
+##### Si $h_{ii}>\frac{2p}{n}$=0.1846 entonces i es un punto de balanceo
+
+##### Si $|DFFTITS_i|>2\sqrt{\frac{2p}{n}}$=0.6076 entonces i es un punto influyente
+
+##### **Puntos de balanceo**
+```{r}
+which((est_salida$hii.value) > 0.1846)
+```
+##### Las observaciones en estas posiciones superan los valores aceptables de $h_{ii}$  y por lo tanto son observaciones de balanceo
+
+##### **Puntos influyentes**
+```{r}
+which(abs(est_salida$Dffits) > 0.6076)
+
+```
+##### Las observaciones en estas posiciones superan los valores aceptables de $$|DFFITS_i|$$  y por lo tanto son observaciones influyentes
+
+
+
+#### **Comentario acerca de la validez del modelo**
+
+##### Desde la validación de supuestos el único que el modelo no cumple es el de varianza constante en los residuales, lo cual se ocasiona posiblemente por la presencia de puntos influyentes y hace que se pierda eficiencia y confiabilidad en el modelo debido a que se desvanece la efectividad en el estimador mínimo cuadrático. Por otro lado se encontraron varios puntos problemáticos de 2 tipos, los cuales generan situaciones no deseadas en el modelo, entre ellas, los puntos de balanceo (de los cuales se encontraron 6) afectan los resultados del coeficiente $R^2$ generando una falsa ilusión de explicación por parte de las variables predictoras al "Riesgo de infección", además los puntos influyentes (de los cuales se encontraron 4) jalan el modelo en su dirección y tienen un mayor efecto sobre la recta de la regresión originando errores en las predicciones sobre "Riesgo de infección". Por lo cual la validez general del modelo es dudosa gracias a los problemas anteriores, debido a esto las predicciones y resultados del mismo no deben tomarse como válidas, estudios más exhaustivos consistirían en rehacer el modelo sin las observaciones problemáticas y garantizando una varianza constante para ver el impacto. 
+
+
+
+
+
+
+
+### 5. Verificar la presencia de multicolinealidad usando gráficos y/o indicadores apropiados.
+
+#### **Con base al indicador numérico VIF**
+```{r}
+myCoefficients(mod,datos)
+
+```
+
+##### Según los indicadores VIF del modelo se puede concluir que no existen problemas de multicolinealidad, puesto que todos son menores a 5.
+
+
+#### **Con base a los indicadores numéricos Índices de condición y Proporción de descomposición de varianza** 
+```{r}
+myCollinDiag(mod)
+myCollinDiag(mod,center = T)
+```
+
+##### Con base a los Índices de condición en el modelo se puede concluir que existen 2 problemas de multicolinealidad moderados y un problema severo.
+
+##### Con base a la Proporción de descomposición de varianza se puede concluir que existe multicolinealidad entre las variables "Número de camas"(x3) y "Censo promedio diario"(x4) puesto que sus $\pi_{ij}$ son mayores a 0.5 y están asociados a un mismo valor propio, más específicamente $\pi_{3,5}$ y $\pi_{3,6}$.
+
+#### **Con base a la matriz de correlación**
+
+
+```{r}
+
+library(psych)
+
+pairs.panels(datos,
+             smooth = FALSE,      # Si TRUE, dibuja ajuste suavizados de tipo loess
+             scale = FALSE,      # Si TRUE, escala la fuente al grado de correlación
+             density = FALSE,     # Si TRUE, añade histogramas y curvas de densidad
+             ellipses = FALSE,    # Si TRUE, dibuja elipses
+             method = "pearson", # Método de correlación (también "spearman" o "kendall")
+             pch = 21,           # Símbolo pch
+             lm = TRUE,         # Si TRUE, dibuja un ajuste lineal en lugar de un ajuste LOESS
+             cor = TRUE,         # Si TRUE, agrega correlaciones
+             jiggle = FALSE,     # Si TRUE, se añade ruido a los datos
+             factor = 2,         # Nivel de ruido añadido a los datos
+             hist.col = 4,       # Color de los histogramas
+             stars = TRUE,       # Si TRUE, agrega el nivel de significación con estrellas
+             ci = TRUE)          # Si TRUE, añade intervalos de confianza a los ajustes
+
+
+
+
+
+```
+
+##### Con base a la matriz de correlación se puede concluir que no existen indicios de problemas de multicolinealidad pues ningún valor entre las variables predictoras es mayor o igual a 0.5.
+
+
+
+<div/>
+
